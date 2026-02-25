@@ -9,44 +9,7 @@ using FTN.ESI.SIMES.CIM.CIMAdapter.Manager;
 
 namespace FTN.ESI.SIMES.CIM.CIMAdapter.Importer
 {
-    /// <summary>
-    /// Projekat5Importer - import CIM entiteta za projekat 5
-    /// 
-    /// HIJERARHIJA ENTITETA:
-    /// =====================
-    /// 
-    /// IdentifiedObject
-    ///   ├── Curve
-    ///   ├── CurveData
-    ///   ├── BasicIntervalSchedule
-    ///   │     ├── RegularIntervalSchedule
-    ///   │     ├── IrregularIntervalSchedule
-    ///   │     └── OutageSchedule
-    ///   ├── RegularTimePoint
-    ///   ├── IrregularTimePoint
-    ///   ├── SwitchingOperation
-    ///   └── PowerSystemResource
-    ///         └── Equipment
-    ///               └── ConductingEquipment
-    ///                     └── Switch
-    /// 
-    /// RELACIONE VEZE:
-    /// ===============
-    /// Curve (1) ←──── (0..*) CurveData
-    /// RegularIntervalSchedule (1) ←──── (1..*) RegularTimePoint
-    /// IrregularIntervalSchedule (1) ←──── (1..*) IrregularTimePoint
-    /// Switch (0..*) ←──── (0..1) SwitchingOperation
-    /// 
-    /// REDOSLED IMPORTA (respektuje zavisnosti):
-    /// ==========================================
-    /// 1. Curve (nema zavisnosti)
-    /// 2. CurveData (zavisi od Curve)
-    /// 3. BasicIntervalSchedule, RegularIntervalSchedule, IrregularIntervalSchedule, OutageSchedule
-    /// 4. RegularTimePoint (zavisi od RegularIntervalSchedule)
-    /// 5. IrregularTimePoint (zavisi od IrregularIntervalSchedule)
-    /// 6. Switch (zavisi od ConductingEquipment hijerarhije)
-    /// 7. SwitchingOperation (zavisi od Switch)
-    /// </summary>
+
     public class Projekat5Importer
     {
         private static Projekat5Importer instance = null;

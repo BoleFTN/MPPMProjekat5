@@ -137,9 +137,40 @@ namespace FTN.Services.NetworkModelService
 					break;
 				case DMSType.WINDINGTEST:
 					io = new WindingTest(globalId);
-					break;			
+					break;	
 
-				default:					
+				case DMSType.CURVE:
+					io = new Curve(globalId);
+					break;
+				case DMSType.CURVEDATA:
+					io = new CurveData(globalId);
+					break;
+				case DMSType.BASICINTERVALSCHEDULE:
+					io = new BasicIntervalSchedule(globalId);
+					break;
+				case DMSType.REGULARINTERVALSCHEDULE:
+					io = new RegularIntervalSchedule(globalId);
+					break;
+				case DMSType.IRREGULARINTERVALSCHEDULE:
+					io = new IrregularIntervalSchedule(globalId);
+					break;
+				case DMSType.OUTAGESCHEDULE:
+					io = new OutageSchedule(globalId);
+					break;
+				case DMSType.REGULARTIMEPOINT:
+					io = new RegularTimePoint(globalId);
+                    break;
+				case DMSType.IRREGULARTIMEPOINT:
+					io = new IrregularTimePoint(globalId);
+					break;
+				case DMSType.SWITCH:
+					io = new Switch(globalId);
+					break;
+				case DMSType.SWITCHINGOPERATION:
+					io = new SwitchingOperation(globalId);
+					break;
+				
+                default:					
 					string message = String.Format("Failed to create entity because specified type ({0}) is not supported.", type);
 					CommonTrace.WriteTrace(CommonTrace.TraceError, message);
 					throw new Exception(message);					
