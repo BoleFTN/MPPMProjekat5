@@ -11,10 +11,33 @@ namespace FTN.Common
 
 		public EnumDescs()
 		{
+			// Postojeći mapiranja
 			property2enumType.Add(ModelCode.CONDEQ_PHASES, typeof(PhaseCode));
 			property2enumType.Add(ModelCode.POWERTR_FUNC, typeof(TransformerFunction));
 			property2enumType.Add(ModelCode.POWERTRWINDING_CONNTYPE, typeof(WindingConnection));
-			property2enumType.Add(ModelCode.POWERTRWINDING_WINDTYPE, typeof(WindingType));														
+			property2enumType.Add(ModelCode.POWERTRWINDING_WINDTYPE, typeof(WindingType));
+
+			// ========== PROJEKAT 5 - NOVA MAPIRANJA ==========
+			
+			// Curve enum properties
+			property2enumType.Add(ModelCode.CURVE_CURVESTYLE, typeof(CurveStyle));
+			property2enumType.Add(ModelCode.CURVE_XMULTIPLIER, typeof(UnitMultiplier));
+			property2enumType.Add(ModelCode.CURVE_XUNIT, typeof(UnitSymbol));
+			property2enumType.Add(ModelCode.CURVE_Y1MULTIPLIER, typeof(UnitMultiplier));
+			property2enumType.Add(ModelCode.CURVE_Y1UNIT, typeof(UnitSymbol));
+			property2enumType.Add(ModelCode.CURVE_Y2MULTIPLIER, typeof(UnitMultiplier));
+			property2enumType.Add(ModelCode.CURVE_Y2UNIT, typeof(UnitSymbol));
+			property2enumType.Add(ModelCode.CURVE_Y3MULTIPLIER, typeof(UnitMultiplier));
+			property2enumType.Add(ModelCode.CURVE_Y3UNIT, typeof(UnitSymbol));
+
+			// BasicIntervalSchedule enum properties
+			property2enumType.Add(ModelCode.BASICINTERVALSCHEDULE_VALUE1MULTI, typeof(UnitMultiplier));
+			property2enumType.Add(ModelCode.BASICINTERVALSCHEDULE_VALUE1UNIT, typeof(UnitSymbol));
+			property2enumType.Add(ModelCode.BASICINTERVALSCHEDULE_VALUE2MULTI, typeof(UnitMultiplier));
+			property2enumType.Add(ModelCode.BASICINTERVALSCHEDULE_VALUE2UNIT, typeof(UnitSymbol));
+
+			// SwitchingOperation enum properties
+			property2enumType.Add(ModelCode.SWITCHINGOPERATION_NEWSTATE, typeof(SwitchState));
 		}
 
 		public List<string> GetEnumList(ModelCode propertyId)
