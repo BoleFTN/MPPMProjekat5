@@ -90,6 +90,7 @@
     <Compile Include="Importer\ImportHelper.cs" />
     <Compile Include="Importer\PowerTransformerConverter.cs" />
     <Compile Include="Importer\PowerTransformerImporter.cs" />
+    <Compile Include="Importer\Project5Converter.cs" />
     <Compile Include="Importer\Project5Importer.cs" />
     <Compile Include="Manager\LogManager.cs" />
     <Compile Include="Manager\ProfileManager.cs" />

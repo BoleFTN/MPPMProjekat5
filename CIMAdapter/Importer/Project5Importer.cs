@@ -124,7 +124,7 @@ namespace FTN.ESI.SIMES.CIM.CIMAdapter.Importer
                 foreach (var pair in cimCurves)
                 {
                     FTN.Curve cimObj = pair.Value as FTN.Curve;
-                    ResourceDescription rd = ImportCurveDatas(cimObj);
+                    //ResourceDescription rd = ImportCurveDatas(cimObj);
                     AddInsertOperation(rd, cimObj, "Curve");
                 }
                 report.Report.AppendLine();
@@ -143,7 +143,9 @@ namespace FTN.ESI.SIMES.CIM.CIMAdapter.Importer
             {
                 foreach (var pair in cimCurveDatas)
                 {
-                    // TODO: Implementirati CreateCurveDataResourceDescription
+                    FTN.CurveData cimObj = pair.Value as FTN.CurveData;
+                    //ResourceDescription rd = ImportCurveDatas(cimObj);
+                    AddInsertOperation(rd, cimObj, "CurveData");
                 }
                 report.Report.AppendLine();
             }
@@ -161,7 +163,9 @@ namespace FTN.ESI.SIMES.CIM.CIMAdapter.Importer
             {
                 foreach (var pair in cimSchedules)
                 {
-                    // TODO: Ako BasicIntervalSchedule nije apstraktan u vašem modelu
+                    FTN.BasicIntervalSchedule cimObj = pair.Value as FTN.BasicIntervalSchedule;
+                   // ResourceDescription rd = ImportCurveDatas(cimObj);
+                    AddInsertOperation(rd, cimObj, "BasicIntervalScheldue");
                 }
                 report.Report.AppendLine();
             }
@@ -178,7 +182,9 @@ namespace FTN.ESI.SIMES.CIM.CIMAdapter.Importer
             {
                 foreach (var pair in cimSchedules)
                 {
-                    // TODO: Implementirati CreateRegularIntervalScheduleResourceDescription
+                    FTN.RegularIntervaalScheldue cimObj = pair.Value as FTN.RegularIntervalSchedule;
+                    //ResourceDescription rd = ImportCurveDatas(cimObj);
+                    AddInsertOperation(rd, cimObj, "RegularIntervalScheldue");
                 }
                 report.Report.AppendLine();
             }
@@ -195,7 +201,9 @@ namespace FTN.ESI.SIMES.CIM.CIMAdapter.Importer
             {
                 foreach (var pair in cimSchedules)
                 {
-                    // TODO: Implementirati CreateIrregularIntervalScheduleResourceDescription
+                    FTN.IrregularIntervalSchedule cimObj = pair.Value as FTN.IrregularIntervalSchedule;
+                    //ResourceDescription rd = ImportCurveDatas(cimObj);
+                    AddInsertOperation(rd, cimObj, "Curve");
                 }
                 report.Report.AppendLine();
             }
@@ -212,7 +220,9 @@ namespace FTN.ESI.SIMES.CIM.CIMAdapter.Importer
             {
                 foreach (var pair in cimSchedules)
                 {
-                    // TODO: Implementirati CreateOutageScheduleResourceDescription
+                    FTN.OutageScheldue cimObj = pair.Value as FTN.OutageScheldue;
+                    //ResourceDescription rd = ImportCurveDatas(cimObj);
+                    AddInsertOperation(rd, cimObj, "Curve");
                 }
                 report.Report.AppendLine();
             }
@@ -230,7 +240,9 @@ namespace FTN.ESI.SIMES.CIM.CIMAdapter.Importer
             {
                 foreach (var pair in cimTimePoints)
                 {
-                    // TODO: Implementirati CreateRegularTimePointResourceDescription
+                    FTN.RegularTimePoint cimObj = pair.Value as FTN.RegularTimePoint;
+                    //ResourceDescription rd = ImportCurveDatas(cimObj);
+                    AddInsertOperation(rd, cimObj, "Curve");
                 }
                 report.Report.AppendLine();
             }
@@ -248,7 +260,9 @@ namespace FTN.ESI.SIMES.CIM.CIMAdapter.Importer
             {
                 foreach (var pair in cimTimePoints)
                 {
-                    // TODO: Implementirati CreateIrregularTimePointResourceDescription
+                    FTN.IrregularTimePoint cimObj = pair.Value as FTN.IrregularTimePoint;
+                    //ResourceDescription rd = ImportCurveDatas(cimObj);
+                    AddInsertOperation(rd, cimObj, "Curve");
                 }
                 report.Report.AppendLine();
             }
@@ -265,7 +279,9 @@ namespace FTN.ESI.SIMES.CIM.CIMAdapter.Importer
             {
                 foreach (var pair in cimSwitches)
                 {
-                    // TODO: Implementirati CreateSwitchResourceDescription
+                    FTN.Switch cimObj = pair.Value as FTN.Switch;
+                    //ResourceDescription rd = ImportCurveDatas(cimObj);
+                    AddInsertOperation(rd, cimObj, "Curve");
                 }
                 report.Report.AppendLine();
             }
@@ -283,7 +299,9 @@ namespace FTN.ESI.SIMES.CIM.CIMAdapter.Importer
             {
                 foreach (var pair in cimOperations)
                 {
-                    // TODO: Implementirati CreateSwitchingOperationResourceDescription
+                    FTN.SwitchingOperation cimObj = pair.Value as FTN.SwitchingOperation;
+                    //ResourceDescription rd = ImportCurveDatas(cimObj);
+                    AddInsertOperation(rd, cimObj, "Curve");
                 }
                 report.Report.AppendLine();
             }
