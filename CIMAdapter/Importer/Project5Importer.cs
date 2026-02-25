@@ -1,15 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using CIM.Model;
 using FTN.Common;
 using FTN.ESI.SIMES.CIM.CIMAdapter.Manager;
 
 namespace FTN.ESI.SIMES.CIM.CIMAdapter.Importer
 {
-
     public class Projekat5Importer
     {
         private static Projekat5Importer instance = null;
@@ -77,34 +73,30 @@ namespace FTN.ESI.SIMES.CIM.CIMAdapter.Importer
             return report;
         }
 
-        /// <summary>
-        /// Konvertuje CIM model u NMS Delta objekt
-        /// Poštuje redosled zavisnosti izmedju entiteta
-        /// </summary>
         private void ConvertModelAndPopulateDelta()
         {
             LogManager.Log("Loading elements and creating delta...", LogLevel.Info);
 
-            // FAZA 1: Entiteti bez zavisnosti (nezavisni)
+            // FAZA 1: Nezavisni entiteti
             ImportCurves();
 
             // FAZA 2: Entiteti koji zavise od Curve
             ImportCurveDatas();
 
-            // FAZA 3: Schedule entiteti (nasledjuju BasicIntervalSchedule)
+            // FAZA 3: Schedule entiteti
             ImportBasicIntervalSchedules();
             ImportRegularIntervalSchedules();
             ImportIrregularIntervalSchedules();
             ImportOutageSchedules();
 
-            // FAZA 4: TimePoint entiteti (zavise od Schedule-a)
+            // FAZA 4: TimePoint entiteti
             ImportRegularTimePoints();
             ImportIrregularTimePoints();
 
-            // FAZA 5: ConductingEquipment hijerarhija
+            // FAZA 5: Switch
             ImportSwitches();
 
-            // FAZA 6: Entiteti koji zavise od Switch
+            // FAZA 6: SwitchingOperation
             ImportSwitchingOperations();
 
             LogManager.Log("Loading elements and creating delta completed.", LogLevel.Info);
@@ -112,229 +104,370 @@ namespace FTN.ESI.SIMES.CIM.CIMAdapter.Importer
 
         #region Import Methods
 
-        /// <summary>
-        /// Import Curve entiteta (FTN.Curve)
-        /// Hijerarhija: IdentifiedObject → Curve
-        /// </summary>
         private void ImportCurves()
         {
-            SortedDictionary<string, object> cimCurves = concreteModel.GetAllObjectsOfType("FTN.Curve");
-            if (cimCurves != null)
+            SortedDictionary<string, object> cimObjects = concreteModel.GetAllObjectsOfType("FTN.Curve");
+            if (cimObjects != null)
             {
-                foreach (var pair in cimCurves)
+                foreach (KeyValuePair<string, object> pair in cimObjects)
                 {
                     FTN.Curve cimObj = pair.Value as FTN.Curve;
-                    //ResourceDescription rd = ImportCurveDatas(cimObj);
-                    AddInsertOperation(rd, cimObj, "Curve");
+                    ResourceDescription rd = CreateCurveResourceDescription(cimObj);
+                    if (rd != null)
+                    {
+                        delta.AddDeltaOperation(DeltaOpType.Insert, rd, true);
+                        report.Report.Append("Curve ID = ").Append(cimObj.ID).Append(" SUCCESSFULLY converted to GID = ").AppendLine(rd.Id.ToString());
+                    }
+                    else
+                    {
+                        report.Report.Append("Curve ID = ").Append(cimObj.ID).AppendLine(" FAILED to be converted");
+                    }
                 }
                 report.Report.AppendLine();
             }
         }
 
-        /// <summary>
-        /// Import CurveData entiteta (FTN.CurveData)
-        /// Hijerarhija: IdentifiedObject → CurveData
-        /// Zavisi od: Curve (preko reference)
-        /// </summary>
         private void ImportCurveDatas()
         {
-            SortedDictionary<string, object> cimCurveDatas = concreteModel.GetAllObjectsOfType("FTN.CurveData");
-            if (cimCurveDatas != null)
+            SortedDictionary<string, object> cimObjects = concreteModel.GetAllObjectsOfType("FTN.CurveData");
+            if (cimObjects != null)
             {
-                foreach (var pair in cimCurveDatas)
+                foreach (KeyValuePair<string, object> pair in cimObjects)
                 {
                     FTN.CurveData cimObj = pair.Value as FTN.CurveData;
-                    //ResourceDescription rd = ImportCurveDatas(cimObj);
-                    AddInsertOperation(rd, cimObj, "CurveData");
+                    ResourceDescription rd = CreateCurveDataResourceDescription(cimObj);
+                    if (rd != null)
+                    {
+                        delta.AddDeltaOperation(DeltaOpType.Insert, rd, true);
+                        report.Report.Append("CurveData ID = ").Append(cimObj.ID).Append(" SUCCESSFULLY converted to GID = ").AppendLine(rd.Id.ToString());
+                    }
+                    else
+                    {
+                        report.Report.Append("CurveData ID = ").Append(cimObj.ID).AppendLine(" FAILED to be converted");
+                    }
                 }
                 report.Report.AppendLine();
             }
         }
 
-        /// <summary>
-        /// Import BasicIntervalSchedule entiteta (FTN.BasicIntervalSchedule)
-        /// Hijerarhija: IdentifiedObject → BasicIntervalSchedule
-        /// Napomena: Ovo je apstraktna klasa u CIM-u, ali možda ima konkretne instance
-        /// </summary>
         private void ImportBasicIntervalSchedules()
         {
-            SortedDictionary<string, object> cimSchedules = concreteModel.GetAllObjectsOfType("FTN.BasicIntervalSchedule");
-            if (cimSchedules != null)
+            SortedDictionary<string, object> cimObjects = concreteModel.GetAllObjectsOfType("FTN.BasicIntervalSchedule");
+            if (cimObjects != null)
             {
-                foreach (var pair in cimSchedules)
+                foreach (KeyValuePair<string, object> pair in cimObjects)
                 {
                     FTN.BasicIntervalSchedule cimObj = pair.Value as FTN.BasicIntervalSchedule;
-                   // ResourceDescription rd = ImportCurveDatas(cimObj);
-                    AddInsertOperation(rd, cimObj, "BasicIntervalScheldue");
+                    ResourceDescription rd = CreateBasicIntervalScheduleResourceDescription(cimObj);
+                    if (rd != null)
+                    {
+                        delta.AddDeltaOperation(DeltaOpType.Insert, rd, true);
+                        report.Report.Append("BasicIntervalSchedule ID = ").Append(cimObj.ID).Append(" SUCCESSFULLY converted to GID = ").AppendLine(rd.Id.ToString());
+                    }
+                    else
+                    {
+                        report.Report.Append("BasicIntervalSchedule ID = ").Append(cimObj.ID).AppendLine(" FAILED to be converted");
+                    }
                 }
                 report.Report.AppendLine();
             }
         }
 
-        /// <summary>
-        /// Import RegularIntervalSchedule entiteta (FTN.RegularIntervalSchedule)
-        /// Hijerarhija: IdentifiedObject → BasicIntervalSchedule → RegularIntervalSchedule
-        /// </summary>
         private void ImportRegularIntervalSchedules()
         {
-            SortedDictionary<string, object> cimSchedules = concreteModel.GetAllObjectsOfType("FTN.RegularIntervalSchedule");
-            if (cimSchedules != null)
+            SortedDictionary<string, object> cimObjects = concreteModel.GetAllObjectsOfType("FTN.RegularIntervalSchedule");
+            if (cimObjects != null)
             {
-                foreach (var pair in cimSchedules)
+                foreach (KeyValuePair<string, object> pair in cimObjects)
                 {
-                    FTN.RegularIntervaalScheldue cimObj = pair.Value as FTN.RegularIntervalSchedule;
-                    //ResourceDescription rd = ImportCurveDatas(cimObj);
-                    AddInsertOperation(rd, cimObj, "RegularIntervalScheldue");
+                    FTN.RegularIntervalSchedule cimObj = pair.Value as FTN.RegularIntervalSchedule;
+                    ResourceDescription rd = CreateRegularIntervalScheduleResourceDescription(cimObj);
+                    if (rd != null)
+                    {
+                        delta.AddDeltaOperation(DeltaOpType.Insert, rd, true);
+                        report.Report.Append("RegularIntervalSchedule ID = ").Append(cimObj.ID).Append(" SUCCESSFULLY converted to GID = ").AppendLine(rd.Id.ToString());
+                    }
+                    else
+                    {
+                        report.Report.Append("RegularIntervalSchedule ID = ").Append(cimObj.ID).AppendLine(" FAILED to be converted");
+                    }
                 }
                 report.Report.AppendLine();
             }
         }
 
-        /// <summary>
-        /// Import IrregularIntervalSchedule entiteta (FTN.IrregularIntervalSchedule)
-        /// Hijerarhija: IdentifiedObject → BasicIntervalSchedule → IrregularIntervalSchedule
-        /// </summary>
         private void ImportIrregularIntervalSchedules()
         {
-            SortedDictionary<string, object> cimSchedules = concreteModel.GetAllObjectsOfType("FTN.IrregularIntervalSchedule");
-            if (cimSchedules != null)
+            SortedDictionary<string, object> cimObjects = concreteModel.GetAllObjectsOfType("FTN.IrregularIntervalSchedule");
+            if (cimObjects != null)
             {
-                foreach (var pair in cimSchedules)
+                foreach (KeyValuePair<string, object> pair in cimObjects)
                 {
                     FTN.IrregularIntervalSchedule cimObj = pair.Value as FTN.IrregularIntervalSchedule;
-                    //ResourceDescription rd = ImportCurveDatas(cimObj);
-                    AddInsertOperation(rd, cimObj, "Curve");
+                    ResourceDescription rd = CreateIrregularIntervalScheduleResourceDescription(cimObj);
+                    if (rd != null)
+                    {
+                        delta.AddDeltaOperation(DeltaOpType.Insert, rd, true);
+                        report.Report.Append("IrregularIntervalSchedule ID = ").Append(cimObj.ID).Append(" SUCCESSFULLY converted to GID = ").AppendLine(rd.Id.ToString());
+                    }
+                    else
+                    {
+                        report.Report.Append("IrregularIntervalSchedule ID = ").Append(cimObj.ID).AppendLine(" FAILED to be converted");
+                    }
                 }
                 report.Report.AppendLine();
             }
         }
 
-        /// <summary>
-        /// Import OutageSchedule entiteta (FTN.OutageSchedule)
-        /// Hijerarhija: IdentifiedObject → BasicIntervalSchedule → OutageSchedule
-        /// </summary>
         private void ImportOutageSchedules()
         {
-            SortedDictionary<string, object> cimSchedules = concreteModel.GetAllObjectsOfType("FTN.OutageSchedule");
-            if (cimSchedules != null)
+            SortedDictionary<string, object> cimObjects = concreteModel.GetAllObjectsOfType("FTN.OutageSchedule");
+            if (cimObjects != null)
             {
-                foreach (var pair in cimSchedules)
+                foreach (KeyValuePair<string, object> pair in cimObjects)
                 {
-                    FTN.OutageScheldue cimObj = pair.Value as FTN.OutageScheldue;
-                    //ResourceDescription rd = ImportCurveDatas(cimObj);
-                    AddInsertOperation(rd, cimObj, "Curve");
+                    FTN.OutageSchedule cimObj = pair.Value as FTN.OutageSchedule;
+                    ResourceDescription rd = CreateOutageScheduleResourceDescription(cimObj);
+                    if (rd != null)
+                    {
+                        delta.AddDeltaOperation(DeltaOpType.Insert, rd, true);
+                        report.Report.Append("OutageSchedule ID = ").Append(cimObj.ID).Append(" SUCCESSFULLY converted to GID = ").AppendLine(rd.Id.ToString());
+                    }
+                    else
+                    {
+                        report.Report.Append("OutageSchedule ID = ").Append(cimObj.ID).AppendLine(" FAILED to be converted");
+                    }
                 }
                 report.Report.AppendLine();
             }
         }
 
-        /// <summary>
-        /// Import RegularTimePoint entiteta (FTN.RegularTimePoint)
-        /// Hijerarhija: IdentifiedObject → RegularTimePoint
-        /// Zavisi od: RegularIntervalSchedule (preko reference)
-        /// </summary>
         private void ImportRegularTimePoints()
         {
-            SortedDictionary<string, object> cimTimePoints = concreteModel.GetAllObjectsOfType("FTN.RegularTimePoint");
-            if (cimTimePoints != null)
+            SortedDictionary<string, object> cimObjects = concreteModel.GetAllObjectsOfType("FTN.RegularTimePoint");
+            if (cimObjects != null)
             {
-                foreach (var pair in cimTimePoints)
+                foreach (KeyValuePair<string, object> pair in cimObjects)
                 {
                     FTN.RegularTimePoint cimObj = pair.Value as FTN.RegularTimePoint;
-                    //ResourceDescription rd = ImportCurveDatas(cimObj);
-                    AddInsertOperation(rd, cimObj, "Curve");
+                    ResourceDescription rd = CreateRegularTimePointResourceDescription(cimObj);
+                    if (rd != null)
+                    {
+                        delta.AddDeltaOperation(DeltaOpType.Insert, rd, true);
+                        report.Report.Append("RegularTimePoint ID = ").Append(cimObj.ID).Append(" SUCCESSFULLY converted to GID = ").AppendLine(rd.Id.ToString());
+                    }
+                    else
+                    {
+                        report.Report.Append("RegularTimePoint ID = ").Append(cimObj.ID).AppendLine(" FAILED to be converted");
+                    }
                 }
                 report.Report.AppendLine();
             }
         }
 
-        /// <summary>
-        /// Import IrregularTimePoint entiteta (FTN.IrregularTimePoint)
-        /// Hijerarhija: IdentifiedObject → IrregularTimePoint
-        /// Zavisi od: IrregularIntervalSchedule (preko reference)
-        /// </summary>
         private void ImportIrregularTimePoints()
         {
-            SortedDictionary<string, object> cimTimePoints = concreteModel.GetAllObjectsOfType("FTN.IrregularTimePoint");
-            if (cimTimePoints != null)
+            SortedDictionary<string, object> cimObjects = concreteModel.GetAllObjectsOfType("FTN.IrregularTimePoint");
+            if (cimObjects != null)
             {
-                foreach (var pair in cimTimePoints)
+                foreach (KeyValuePair<string, object> pair in cimObjects)
                 {
                     FTN.IrregularTimePoint cimObj = pair.Value as FTN.IrregularTimePoint;
-                    //ResourceDescription rd = ImportCurveDatas(cimObj);
-                    AddInsertOperation(rd, cimObj, "Curve");
+                    ResourceDescription rd = CreateIrregularTimePointResourceDescription(cimObj);
+                    if (rd != null)
+                    {
+                        delta.AddDeltaOperation(DeltaOpType.Insert, rd, true);
+                        report.Report.Append("IrregularTimePoint ID = ").Append(cimObj.ID).Append(" SUCCESSFULLY converted to GID = ").AppendLine(rd.Id.ToString());
+                    }
+                    else
+                    {
+                        report.Report.Append("IrregularTimePoint ID = ").Append(cimObj.ID).AppendLine(" FAILED to be converted");
+                    }
                 }
                 report.Report.AppendLine();
             }
         }
 
-        /// <summary>
-        /// Import Switch entiteta (FTN.Switch)
-        /// Hijerarhija: IdentifiedObject → PowerSystemResource → Equipment → ConductingEquipment → Switch
-        /// </summary>
         private void ImportSwitches()
         {
-            SortedDictionary<string, object> cimSwitches = concreteModel.GetAllObjectsOfType("FTN.Switch");
-            if (cimSwitches != null)
+            SortedDictionary<string, object> cimObjects = concreteModel.GetAllObjectsOfType("FTN.Switch");
+            if (cimObjects != null)
             {
-                foreach (var pair in cimSwitches)
+                foreach (KeyValuePair<string, object> pair in cimObjects)
                 {
                     FTN.Switch cimObj = pair.Value as FTN.Switch;
-                    //ResourceDescription rd = ImportCurveDatas(cimObj);
-                    AddInsertOperation(rd, cimObj, "Curve");
+                    ResourceDescription rd = CreateSwitchResourceDescription(cimObj);
+                    if (rd != null)
+                    {
+                        delta.AddDeltaOperation(DeltaOpType.Insert, rd, true);
+                        report.Report.Append("Switch ID = ").Append(cimObj.ID).Append(" SUCCESSFULLY converted to GID = ").AppendLine(rd.Id.ToString());
+                    }
+                    else
+                    {
+                        report.Report.Append("Switch ID = ").Append(cimObj.ID).AppendLine(" FAILED to be converted");
+                    }
                 }
                 report.Report.AppendLine();
             }
         }
 
-        /// <summary>
-        /// Import SwitchingOperation entiteta (FTN.SwitchingOperation)
-        /// Hijerarhija: IdentifiedObject → SwitchingOperation
-        /// Zavisi od: Switch (preko reference)
-        /// </summary>
         private void ImportSwitchingOperations()
         {
-            SortedDictionary<string, object> cimOperations = concreteModel.GetAllObjectsOfType("FTN.SwitchingOperation");
-            if (cimOperations != null)
+            SortedDictionary<string, object> cimObjects = concreteModel.GetAllObjectsOfType("FTN.SwitchingOperation");
+            if (cimObjects != null)
             {
-                foreach (var pair in cimOperations)
+                foreach (KeyValuePair<string, object> pair in cimObjects)
                 {
                     FTN.SwitchingOperation cimObj = pair.Value as FTN.SwitchingOperation;
-                    //ResourceDescription rd = ImportCurveDatas(cimObj);
-                    AddInsertOperation(rd, cimObj, "Curve");
+                    ResourceDescription rd = CreateSwitchingOperationResourceDescription(cimObj);
+                    if (rd != null)
+                    {
+                        delta.AddDeltaOperation(DeltaOpType.Insert, rd, true);
+                        report.Report.Append("SwitchingOperation ID = ").Append(cimObj.ID).Append(" SUCCESSFULLY converted to GID = ").AppendLine(rd.Id.ToString());
+                    }
+                    else
+                    {
+                        report.Report.Append("SwitchingOperation ID = ").Append(cimObj.ID).AppendLine(" FAILED to be converted");
+                    }
                 }
                 report.Report.AppendLine();
             }
         }
 
-
-        private void AddInsertOperation(ResourceDescription rd, FTN.IDClass cimObj, string label)
-        {
-            if (rd != null)
-            {
-                delta.AddDeltaOperation(DeltaOpType.Insert, rd, true);
-                report.Report.Append(label).Append(" ID = ").Append(cimObj != null ? cimObj.ID : string.Empty).Append(" SUCCESSFULLY converted to GID = ").AppendLine(rd.Id.ToString());
-            }
-            else
-            {
-                report.Report.Append(label).Append(" ID = ").Append(cimObj != null ? cimObj.ID : string.Empty).AppendLine(" FAILED to be converted");
-            }
-        }
         #endregion Import Methods
 
-        #region Helper Methods - TODO: Implementirati u sledećem koraku
+        #region Create ResourceDescription Methods
 
-        // TODO: Sledeci korak je kreiranje converter metoda kao što su:
-        // - CreateCurveResourceDescription(FTN.Curve cimCurve)
-        // - CreateCurveDataResourceDescription(FTN.CurveData cimCurveData)
-        // - CreateRegularIntervalScheduleResourceDescription(...)
-        // - CreateIrregularIntervalScheduleResourceDescription(...)
-        // - CreateOutageScheduleResourceDescription(...)
-        // - CreateRegularTimePointResourceDescription(...)
-        // - CreateIrregularTimePointResourceDescription(...)
-        // - CreateSwitchResourceDescription(...)
-        // - CreateSwitchingOperationResourceDescription(...)
+        private ResourceDescription CreateCurveResourceDescription(FTN.Curve cimCurve)
+        {
+            ResourceDescription rd = null;
+            if (cimCurve != null)
+            {
+                long gid = ModelCodeHelper.CreateGlobalId(0, (short)DMSType.CURVE, importHelper.CheckOutIndexForDMSType(DMSType.CURVE));
+                rd = new ResourceDescription(gid);
+                importHelper.DefineIDMapping(cimCurve.ID, gid);
+                Project5Converter.PopulateCurveProperties(cimCurve, rd);
+            }
+            return rd;
+        }
 
-        #endregion Helper Methods
+        private ResourceDescription CreateCurveDataResourceDescription(FTN.CurveData cimCurveData)
+        {
+            ResourceDescription rd = null;
+            if (cimCurveData != null)
+            {
+                long gid = ModelCodeHelper.CreateGlobalId(0, (short)DMSType.CURVEDATA, importHelper.CheckOutIndexForDMSType(DMSType.CURVEDATA));
+                rd = new ResourceDescription(gid);
+                importHelper.DefineIDMapping(cimCurveData.ID, gid);
+                Project5Converter.PopulateCurveDataProperties(cimCurveData, rd);
+            }
+            return rd;
+        }
+
+        private ResourceDescription CreateBasicIntervalScheduleResourceDescription(FTN.BasicIntervalSchedule cimSchedule)
+        {
+            ResourceDescription rd = null;
+            if (cimSchedule != null)
+            {
+                long gid = ModelCodeHelper.CreateGlobalId(0, (short)DMSType.BASICINTERVALSCHEDULE, importHelper.CheckOutIndexForDMSType(DMSType.BASICINTERVALSCHEDULE));
+                rd = new ResourceDescription(gid);
+                importHelper.DefineIDMapping(cimSchedule.ID, gid);
+                Project5Converter.PopulateBasicIntervalScheduleProperties(cimSchedule, rd);
+            }
+            return rd;
+        }
+
+        private ResourceDescription CreateRegularIntervalScheduleResourceDescription(FTN.RegularIntervalSchedule cimSchedule)
+        {
+            ResourceDescription rd = null;
+            if (cimSchedule != null)
+            {
+                long gid = ModelCodeHelper.CreateGlobalId(0, (short)DMSType.REGULARINTERVALSCHEDULE, importHelper.CheckOutIndexForDMSType(DMSType.REGULARINTERVALSCHEDULE));
+                rd = new ResourceDescription(gid);
+                importHelper.DefineIDMapping(cimSchedule.ID, gid);
+                Project5Converter.PopulateRegularIntervalScheduleProperties(cimSchedule, rd);
+            }
+            return rd;
+        }
+
+        private ResourceDescription CreateIrregularIntervalScheduleResourceDescription(FTN.IrregularIntervalSchedule cimSchedule)
+        {
+            ResourceDescription rd = null;
+            if (cimSchedule != null)
+            {
+                long gid = ModelCodeHelper.CreateGlobalId(0, (short)DMSType.IRREGULARINTERVALSCHEDULE, importHelper.CheckOutIndexForDMSType(DMSType.IRREGULARINTERVALSCHEDULE));
+                rd = new ResourceDescription(gid);
+                importHelper.DefineIDMapping(cimSchedule.ID, gid);
+                Project5Converter.PopulateIrregularIntervalScheduleProperties(cimSchedule, rd);
+            }
+            return rd;
+        }
+
+        private ResourceDescription CreateOutageScheduleResourceDescription(FTN.OutageSchedule cimSchedule)
+        {
+            ResourceDescription rd = null;
+            if (cimSchedule != null)
+            {
+                long gid = ModelCodeHelper.CreateGlobalId(0, (short)DMSType.OUTAGESCHEDULE, importHelper.CheckOutIndexForDMSType(DMSType.OUTAGESCHEDULE));
+                rd = new ResourceDescription(gid);
+                importHelper.DefineIDMapping(cimSchedule.ID, gid);
+                Project5Converter.PopulateOutageScheduleProperties(cimSchedule, rd);
+            }
+            return rd;
+        }
+
+        private ResourceDescription CreateRegularTimePointResourceDescription(FTN.RegularTimePoint cimTimePoint)
+        {
+            ResourceDescription rd = null;
+            if (cimTimePoint != null)
+            {
+                long gid = ModelCodeHelper.CreateGlobalId(0, (short)DMSType.REGULARTIMEPOINT, importHelper.CheckOutIndexForDMSType(DMSType.REGULARTIMEPOINT));
+                rd = new ResourceDescription(gid);
+                importHelper.DefineIDMapping(cimTimePoint.ID, gid);
+                Project5Converter.PopulateRegularTimePointProperties(cimTimePoint, rd);
+            }
+            return rd;
+        }
+
+        private ResourceDescription CreateIrregularTimePointResourceDescription(FTN.IrregularTimePoint cimTimePoint)
+        {
+            ResourceDescription rd = null;
+            if (cimTimePoint != null)
+            {
+                long gid = ModelCodeHelper.CreateGlobalId(0, (short)DMSType.IRREGULARTIMEPOINT, importHelper.CheckOutIndexForDMSType(DMSType.IRREGULARTIMEPOINT));
+                rd = new ResourceDescription(gid);
+                importHelper.DefineIDMapping(cimTimePoint.ID, gid);
+                Project5Converter.PopulateIrregularTimePointProperties(cimTimePoint, rd);
+            }
+            return rd;
+        }
+
+        private ResourceDescription CreateSwitchResourceDescription(FTN.Switch cimSwitch)
+        {
+            ResourceDescription rd = null;
+            if (cimSwitch != null)
+            {
+                long gid = ModelCodeHelper.CreateGlobalId(0, (short)DMSType.SWITCH, importHelper.CheckOutIndexForDMSType(DMSType.SWITCH));
+                rd = new ResourceDescription(gid);
+                importHelper.DefineIDMapping(cimSwitch.ID, gid);
+                Project5Converter.PopulateSwitchProperties(cimSwitch, rd);
+            }
+            return rd;
+        }
+
+        private ResourceDescription CreateSwitchingOperationResourceDescription(FTN.SwitchingOperation cimOperation)
+        {
+            ResourceDescription rd = null;
+            if (cimOperation != null)
+            {
+                long gid = ModelCodeHelper.CreateGlobalId(0, (short)DMSType.SWITCHINGOPERATION, importHelper.CheckOutIndexForDMSType(DMSType.SWITCHINGOPERATION));
+                rd = new ResourceDescription(gid);
+                importHelper.DefineIDMapping(cimOperation.ID, gid);
+                Project5Converter.PopulateSwitchingOperationProperties(cimOperation, rd);
+            }
+            return rd;
+        }
+
+        #endregion Create ResourceDescription Methods
     }
 }
